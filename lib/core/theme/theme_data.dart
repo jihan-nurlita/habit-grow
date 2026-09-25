@@ -176,3 +176,22 @@ final oceanTheme = ThemeModel(
   softColor: const Color(0xFFDFF5FF),
   borderColor: const Color(0xFFCDEEFF),
 );
+
+/// List semua tema untuk kebutuhan SharedPreferences
+final List<ThemeModel> appThemes = [
+  greenTheme,
+  purpleTheme,
+  pinkTheme,
+  blueTheme,
+  orangeTheme,
+  greyTheme,
+  redTheme,
+  cyanTheme,
+  yellowTheme,
+  mintTheme,
+  indigoTheme,
+  brownTheme,
+  roseTheme,
+  lavenderTheme,
+  oceanTheme,
+];

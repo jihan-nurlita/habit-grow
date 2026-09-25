@@ -1,10 +1,55 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/habit_model.dart';
 
 class HabitProvider extends ChangeNotifier {
-  final List<HabitModel> _habits = [];
+  List<HabitModel> _habits = [];
 
   List<HabitModel> get habits => _habits;
+
+  // Key untuk SharedPreferences
+  static const String _storageKey = 'saved_habits_key';
+
+  /// Constructor: Langsung muat data dari SharedPreferences saat Provider dibuat
+  HabitProvider() {
+    _loadHabitsFromStorage();
+  }
+
+  /// =======================
+  /// LOCAL STORAGE (SHARED PREFERENCES)
+  /// =======================
+
+  // Simpan list ke SharedPreferences
+  Future<void> _saveHabitsToStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String encodedData = jsonEncode(
+        _habits.map((habit) => habit.toJson()).toList(),
+      );
+      await prefs.setString(_storageKey, encodedData);
+    } catch (e) {
+      debugPrint('Gagal menyimpan habits: $e');
+    }
+  }
+
+  // Muat list dari SharedPreferences
+  Future<void> _loadHabitsFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? habitsString = prefs.getString(_storageKey);
+
+      if (habitsString != null) {
+        final List<dynamic> decodedData = jsonDecode(habitsString);
+        _habits = decodedData
+            .map((item) => HabitModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Gagal memuat habits: $e');
+    }
+  }
 
   /// =======================
   /// GET HABIT BY MONTH
@@ -105,7 +150,7 @@ class HabitProvider extends ChangeNotifier {
     HabitModel habit,
   ) {
     _habits.add(habit);
-
+    _saveHabitsToStorage(); // Simpan perubahan
     notifyListeners();
   }
 
@@ -123,7 +168,7 @@ class HabitProvider extends ChangeNotifier {
     }
 
     _habits[index].completed = !_habits[index].completed;
-
+    _saveHabitsToStorage(); // Simpan perubahan
     notifyListeners();
   }
 
@@ -142,7 +187,7 @@ class HabitProvider extends ChangeNotifier {
     }
 
     _habits[index] = updatedHabit;
-
+    _saveHabitsToStorage(); // Simpan perubahan
     notifyListeners();
   }
 
@@ -154,7 +199,7 @@ class HabitProvider extends ChangeNotifier {
     HabitModel habit,
   ) {
     _habits.remove(habit);
-
+    _saveHabitsToStorage(); // Simpan perubahan
     notifyListeners();
   }
 
