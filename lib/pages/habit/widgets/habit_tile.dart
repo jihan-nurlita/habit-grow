@@ -64,6 +64,7 @@ class HabitTile extends StatelessWidget {
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
                     ),
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 0),
                   Text(
@@ -73,6 +74,7 @@ class HabitTile extends StatelessWidget {
                       color: theme.textColor
                           .withOpacity(0.55), // Samar sesuai tema
                     ),
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 1),
                   Text(
@@ -81,6 +83,7 @@ class HabitTile extends StatelessWidget {
                       fontSize: 13,
                       color: Colors.grey,
                     ),
+                    maxLines: 1,
                   ),
                 ],
               ),

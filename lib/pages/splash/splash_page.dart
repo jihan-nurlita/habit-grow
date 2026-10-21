@@ -1,8 +1,11 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:habit_grow/pages/auth/login_page.dart';
+import 'package:habit_grow/pages/home/home_page.dart';
+import 'package:habit_grow/pages/onboarding/onboarding_page.dart';
 import 'package:habit_grow/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -11,132 +14,105 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-
+class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-
-    // Mengatur animasi fade-in untuk logo dan teks agar muncul perlahan
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
-
-    _animationController.forward();
-
-    // Timer untuk berpindah halaman secara otomatis setelah 3 detik
-    Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        // Ganti '/' dengan rute halaman utama aplikasi kamu (misal: HomePage atau StatisticsPage)
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    });
+    _checkAuthStatus();
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+  // Fungsi untuk mengecek status login & onboarding
+  Future<void> _checkAuthStatus() async {
+    // Berikan jeda waktu tampil splash screen (misal 2 detik)
+    await Future.delayed(const Duration(seconds: 2));
+
+    final prefs = await SharedPreferences.getInstance();
+    final bool isFirstRun = prefs.getBool('is_first_run') ?? true;
+    final bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+
+    if (!mounted) return;
+
+    // Logika Pengalihan Halaman
+    if (isFirstRun) {
+      // Jika pertama kali buka aplikasi -> ke Onboarding
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const OnboardingPage()),
+      );
+    } else if (isLoggedIn) {
+      // Jika sudah pernah login -> langsung ke Home
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    } else {
+      // Jika sudah bukan pertama kali tapi belum login -> ke Login Page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Mengambil tema aktif dari ThemeProvider agar otomatis mengikuti Light / Dark Mode
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
 
     return Scaffold(
-      backgroundColor: theme.backgroundColor,
-      body: SafeArea(
-        child: Stack(
+      backgroundColor: theme.backgroundColor, // Berubah otomatis sesuai mode
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Konten Tengah: Logo & Judul Aplikasi
-            Center(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Container Lingkaran Logo (Meniru gaya ikon habit premium)
-                    Container(
-                      width: 90,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        color: theme.primaryColor.withOpacity(0.15),
-                        shape: BoxShape.circle,
+            // Logo / Icon Utama Aplikasi
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: theme.primaryColor.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: theme.primaryColor, // Mengikuti warna tema utama
+                    shape: BoxShape.circle,
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 15,
+                        offset: Offset(0, 5),
                       ),
-                      child: Center(
-                        child: Icon(
-                          Icons
-                              .local_fire_department_rounded, // Ikon api streak habit pekat solid
-                          size: 48,
-                          color: theme.primaryColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Nama Aplikasi
-                    Text(
-                      "Habit Tracker",
-                      style: GoogleFonts.poppins(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.grey.shade900,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Subtitle / Tagline
-                    Text(
-                      "Bangun konsistensi setiap hari",
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.eco,
+                    size: 50,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-
-            // Konten Bawah: Indikator Loading Tipis Elegan
-            Positioned(
-              bottom: 40,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(theme.primaryColor),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      "Memuat data...",
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade400,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ],
-                ),
+            const SizedBox(height: 24),
+            Text(
+              "Habit Grow",
+              style: GoogleFonts.poppins(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: theme.textColor, // Otomatis menyesuaikan teks Light/Dark
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Build Better Habits Every Day",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color:
+                    theme.textColor.withOpacity(0.6), // Otomatis menyesuaikan
               ),
             ),
           ],
