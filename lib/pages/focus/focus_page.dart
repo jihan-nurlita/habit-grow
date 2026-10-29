@@ -17,7 +17,7 @@ class FocusPage extends StatelessWidget {
       /// =========================
       /// BOTTOM NAVBAR
       /// =========================
-      bottomNavigationBar: const CustomBottomNav(currentIndex: 1),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 2),
 
       backgroundColor: theme.backgroundColor,
       body: SafeArea(
